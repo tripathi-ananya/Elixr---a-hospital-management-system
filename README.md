@@ -1,2 +1,378 @@
 # Elixr---a-hospital-management-system
-this is an AI based hospital management system which helps in diagnosing diseases and managing the hospital work.
+# this is an AI based hospital management system which helps in diagnosing diseases and managing the hospital work.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Elixr Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .centered {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      width: 100vw;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      overflow-y: auto;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .hidden { display: none; }
+    h1 {
+      font-size: 3em;
+      margin-bottom: 20px;
+      letter-spacing: 2px;
+      align-self: flex-start;
+    }
+    .menu { display: flex; gap: 30px; margin-bottom: 30px; align-self: flex-start;}
+    .option {
+      background-color: rgba(255,255,255,0.1);
+      padding: 20px 40px;
+      border-radius: 10px;
+      font-size: 1.3em;
+      font-weight: bold;
+      color: white;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    .option:hover { background-color: rgba(255,255,255,0.2);}
+    textarea {
+      margin-top: 20px;
+      padding: 10px;
+      width: 80%;
+      border-radius: 5px;
+      border: none;
+      font-size: 1em;
+      resize: vertical;
+      min-height: 80px;
+      font-family: Arial, sans-serif;
+    }
+    button {
+      margin-top: 10px;
+      padding: 12px 28px;
+      background-color: #555;
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      cursor: pointer;
+      font-weight: bold;
+      align-self: flex-start;
+      transition: background-color 0.3s;
+    }
+    button:hover { background-color: #777; }
+    #diagnosisResult, #patientAiAnswer {
+      white-space: pre-wrap;
+      padding: 15px;
+      margin-top: 15px;
+      font-size: 1.2em;
+      border-radius: 6px;
+      background-color: rgba(255,255,255,0.1);
+      min-height: 100px;
+      width: 80%;
+      color: white;
+    }
+    #searchInput {
+      width: 80%;
+      margin-top: 15px;
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 5px;
+      border: none;
+      color: black;
+    }
+    table {
+      width: 100%;
+      max-width: 1200px;
+      border-collapse: collapse;
+      margin-top: 25px;
+      align-self: center;
+      color: white;
+      font-family: Arial, sans-serif;
+      font-size: 0.9em;
+    }
+    th, td {
+      border: 1px solid #555;
+      padding: 8px 12px;
+      text-align: left;
+    }
+    th {
+      background-color: rgba(255,255,255,0.15);
+    }
+    tr:nth-child(even) {
+      background-color: rgba(255,255,255,0.05);
+    }
+    input[type="file"] {
+      margin-top: 15px;
+      align-self: flex-start;
+      padding: 6px;
+      border-radius: 5px;
+      border: none;
+      font-size: 1em;
+      color: black;
+      width: 80%;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      background-color: rgba(255,255,255,0.05);
+      border-radius: 5px;
+      padding: 10px;
+      margin-top: 10px;
+      width: 80%;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    @media (max-width: 768px){
+      textarea, #searchInput, input[type="file"] {
+        width: 95%;
+      }
+      h1 { font-size: 2.2em; }
+      button, .option {
+        font-size: 1em;
+        padding: 10px 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Dashboard -->
+  <div id="dashboard" class="centered">
+    <h1>Welcome to Elixr</h1>
+    <div class="menu">
+      <div class="option" onclick="showScreen('diagnosisScreen')">Diagnosis</div>
+      <div class="option" onclick="showScreen('databaseScreen')">Patient Database</div>
+      <div class="option" onclick="showScreen('cloudScreen')">Cloud OCR</div>
+    </div>
+  </div>
+
+  <!-- Diagnosis Screen -->
+  <div id="diagnosisScreen" class="centered hidden">
+    <h1>Diagnosis Assistant</h1>
+    <textarea id="queryInput" placeholder="Describe symptoms or ask a medical question..."></textarea>
+    <button onclick="diagnose()">Diagnose</button>
+    <div id="diagnosisResult">Describe symptoms and click Diagnose to get results.</div>
+    <button onclick="goBack()">Back to Dashboard</button>
+  </div>
+
+  <!-- Patient Database Screen -->
+  <div id="databaseScreen" class="centered hidden">
+    <h1>Patient Database - Ask AI</h1>
+    <textarea id="patientQueryInput" placeholder="Type any question about the patient records here..."></textarea>
+    <button id="askBtn">Ask AI</button>
+    <div id="patientAiAnswer">Ask a question above and get detailed answers here.</div>
+    <input id="searchInput" placeholder="Instant search patient records" oninput="filterTable()" />
+    <table id="patientTable">
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Diagnosis</th><th>Date of Admission</th>
+          <th>Previous Ailments</th><th>Previous Diagnosis</th><th>Other Conditions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <button id="resetBtn">Clear and Reset</button>
+    <button id="backBtn2">Back to Dashboard</button>
+  </div>
+
+  <!-- Cloud OCR Screen -->
+  <div id="cloudScreen" class="centered hidden">
+    <h1>Cloud - OCR Tool</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+    <p id="status"></p>
+    <pre id="output"></pre>
+    <button onclick="goBack()">Back to Dashboard</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script>
+    const patientData = [
+      {patient_id:1, name:'John Smith', diagnosis: 'Unstable Angina', date_of_admission:'2025-09-01', previous_ailments:'Hypertension', previous_diagnosis:'Essential Hypertension', other_conditions:'Smoker'},
+      {patient_id:2, name:'Maria Garcia', diagnosis:'Type 2 Diabetes', date_of_admission:'2025-09-05', previous_ailments:'Obesity', previous_diagnosis:'Hyperlipidemia', other_conditions:'Family history of diabetes'},
+      {patient_id:3, name:'Ahmed Khan', diagnosis:'Pneumonia', date_of_admission:'2025-08-20', previous_ailments:'Asthma', previous_diagnosis:'Allergic Rhinitis', other_conditions:'Seasonal allergies'},
+      {patient_id:4, name:'Emily Davis', diagnosis:'Acute Appendicitis', date_of_admission:'2025-09-10', previous_ailments:'None', previous_diagnosis:'None', other_conditions:'Vegetarian'},
+      {patient_id:5, name:'Hiroshi Tanaka', diagnosis:'Ischemic Stroke', date_of_admission:'2025-07-29', previous_ailments:'Hypertension', previous_diagnosis:'Transient Ischemic Attack', other_conditions:'Ex-smoker'},
+      {patient_id:6, name:'Olga Petrova', diagnosis:'Rheumatoid Arthritis', date_of_admission:'2025-05-15', previous_ailments:'Osteoarthritis', previous_diagnosis:'Chronic Back Pain', other_conditions:'Gluten intolerance'},
+      {patient_id:7, name:'James Johnson', diagnosis:'Asthma Exacerbation', date_of_admission:'2025-09-02', previous_ailments:'Asthma', previous_diagnosis:'Allergic Rhinitis', other_conditions:'Lactose intolerance'},
+      {patient_id:8, name:'Linda Lee', diagnosis:'Cholelithiasis', date_of_admission:'2025-06-18', previous_ailments:'None', previous_diagnosis:'None', other_conditions:'Blood type O'},
+      {patient_id:9, name:'Carlos Sanchez', diagnosis:'Myocardial Infarction', date_of_admission:'2025-09-11', previous_ailments:'Type 2 Diabetes', previous_diagnosis:'Peripheral Neuropathy', other_conditions:'Excess alcohol intake'},
+      {patient_id:10, name:'Emma Brown', diagnosis:'Chronic Kidney Disease', date_of_admission:'2025-08-24', previous_ailments:'Hypertension', previous_diagnosis:'Proteinuria', other_conditions:'Anemia'},
+      {patient_id:11, name:'Chen Wei', diagnosis:'Peptic Ulcer', date_of_admission:'2025-09-08', previous_ailments:'Gastritis', previous_diagnosis:'Helicobacter pylori Infection', other_conditions:'Ex-smoker'},
+      {patient_id:12, name:'Isabella Rossi', diagnosis:'Breast Cancer', date_of_admission:'2025-03-12', previous_ailments:'None', previous_diagnosis:'None', other_conditions:'Family history of cancer'},
+      {patient_id:13, name:'Daniel Evans', diagnosis:'Epilepsy', date_of_admission:'2025-07-10', previous_ailments:'Head injury', previous_diagnosis:'Concussion', other_conditions:'Photosensitive'},
+      {patient_id:14, name:'Ayesha Patel', diagnosis:'Graves Disease', date_of_admission:'2025-08-16', previous_ailments:'Goiter', previous_diagnosis:'None', other_conditions:'Vegetarian'},
+      {patient_id:15, name:'Paul Müller', diagnosis:'Chronic Obstructive Pulmonary Disease', date_of_admission:'2025-09-03', previous_ailments:'Chronic Bronchitis', previous_diagnosis:'Ex-smoker', other_conditions:'Allergic to penicillin'},
+      {patient_id:16, name:'Anna Kowalska', diagnosis:'Endometriosis', date_of_admission:'2025-04-22', previous_ailments:'None', previous_diagnosis:'None', other_conditions:'Vegetarian'},
+      {patient_id:17, name:'David Wilson', diagnosis:'Heart Failure', date_of_admission:'2025-09-06', previous_ailments:'Coronary Artery Disease', previous_diagnosis:'Old myocardial infarction', other_conditions:'Diabetic'},
+      {patient_id:18, name:'Sophia Kim', diagnosis:'Iron Deficiency Anemia', date_of_admission:'2025-08-30', previous_ailments:'Menorrhagia', previous_diagnosis:'None', other_conditions:'Vegetarian'},
+      {patient_id:19, name:'Ali Hassan', diagnosis:'Chronic Hepatitis B', date_of_admission:'2025-06-15', previous_ailments:'None', previous_diagnosis:'None', other_conditions:'Frequent traveler'},
+      {patient_id:20, name:'Laura Martinez', diagnosis:'Ulcerative Colitis', date_of_admission:'2025-09-09', previous_ailments:'Irritable Bowel Syndrome', previous_diagnosis:'Diverticulitis', other_conditions:'Lactose intolerance'}
+    ];
+
+    const symptomMap = {
+      headache: ['Migraine', 'Epilepsy', 'Hypertension', 'Ischemic Stroke'],
+      breathlessness: ['COPD', 'Asthma Exacerbation', 'Heart Failure', 'Unstable Angina'],
+      fever: ['Pneumonia'],
+      pain: ['Acute Appendicitis', 'Cholelithiasis', 'Endometriosis', 'Rheumatoid Arthritis'],
+      diabetes: ['Type 2 Diabetes'],
+      anemia: ['Iron Deficiency Anemia', 'Chronic Kidney Disease'],
+      cough: ['COPD', 'Heart Failure']
+    };
+
+    function showScreen(screenId) {
+      ['dashboard','diagnosisScreen','databaseScreen','cloudScreen'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+      document.getElementById(screenId).classList.remove('hidden');
+      if(screenId === 'databaseScreen') loadPatientTable();
+    }
+
+    function goBack() { showScreen('dashboard'); }
+
+    function extractKeywords(text) {
+      return text.replace(/[^\w\s]/g, '').toLowerCase().split(/\s+/);
+    }
+
+    function diagnose() {
+      const symptomsText = document.getElementById('queryInput').value.trim();
+      const output = document.getElementById('diagnosisResult');
+      if (!symptomsText) {
+        alert('Please enter symptoms or a question.');
+        return;
+      }
+      const keywords = extractKeywords(symptomsText);
+      let diagnoses = [];
+      keywords.forEach(word => {
+        if (symptomMap[word]) diagnoses = diagnoses.concat(symptomMap[word]);
+      });
+      if (diagnoses.length === 0) {
+        output.textContent = 'No probable disease found based on your symptoms.';
+      } else {
+        output.textContent = 'Probable diseases: ' + [...new Set(diagnoses)].join(', ');
+      }
+    }
+
+    function loadPatientTable() {
+      const tbody = document.querySelector('#patientTable tbody');
+      tbody.innerHTML = '';
+      patientData.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.patient_id}</td>
+          <td>${p.name}</td>
+          <td>${p.diagnosis}</td>
+          <td>${p.date_of_admission}</td>
+          <td>${p.previous_ailments}</td>
+          <td>${p.previous_diagnosis}</td>
+          <td>${p.other_conditions}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterTable() {
+      const filter = document.getElementById('searchInput').value.toLowerCase();
+      const rows = document.querySelectorAll('#patientTable tbody tr');
+      rows.forEach(row => {
+        row.style.display = Array.from(row.cells).some(cell =>
+          cell.textContent.toLowerCase().includes(filter)
+        ) ? '' : 'none';
+      });
+    }
+
+    function answerPatientQuery() {
+      const input = document.getElementById('patientQueryInput').value.trim().toLowerCase();
+      const output = document.getElementById('patientAiAnswer');
+      if (!input) {
+        alert('Please enter a question.');
+        return;
+      }
+
+      let answer = "I couldn't find an answer to your question. Please try rephrasing.";
+
+      // Improved regex for "how many people have asthma?"
+      const match = input.match(/how many(?: patients| people)? have ([\w\s-]+)\??/i) 
+                   || input.match(/count(?: patients| people)? with ([\w\s-]+)\??/i);
+      if (match) {
+        const keyword = match[1].trim();
+        const count = patientData.filter(p =>
+          Object.values(p).some(val => String(val).toLowerCase().includes(keyword))
+        ).length;
+        answer = `There are ${count} patient${count !== 1 ? 's' : ''} with ${keyword}.`;
+      } else if (/list/.test(input) || /show/.test(input)) {
+        const match2 = input.match(/patients? (with|having) (.+)/);
+        if (match2) {
+          const keyword = match2[2].replace(/[?.!]/g, '').trim();
+          const matched = patientData.filter(p =>
+            Object.values(p).some(val => String(val).toLowerCase().includes(keyword))
+          );
+          if (matched.length > 0) {
+            answer = "Patients matching your query:\n" + matched.map(p =>
+              `- ${p.name} (Diagnosis: ${p.diagnosis}, Admission: ${p.date_of_admission})`
+            ).join('\n');
+          } else {
+            answer = `No patients found with ${keyword}.`;
+          }
+        }
+      } else {
+        const patient = patientData.find(p =>
+          input.includes(p.name.toLowerCase()) || input.includes(p.diagnosis.toLowerCase())
+        );
+        if (patient) {
+          answer = `Patient: ${patient.name}\nDiagnosis: ${patient.diagnosis}\nDate of Admission: ${patient.date_of_admission}\nPrevious Ailments: ${patient.previous_ailments}\nPrevious Diagnosis: ${patient.previous_diagnosis}\nOther Conditions: ${patient.other_conditions}`;
+        }
+      }
+
+      output.textContent = answer;
+    }
+
+    function resetPage() {
+      document.getElementById('patientQueryInput').value = '';
+      document.getElementById('patientAiAnswer').textContent = 'Ask a question above and get detailed answers here.';
+      document.getElementById('searchInput').value = '';
+      loadPatientTable();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      showScreen('dashboard');
+      document.getElementById('askBtn').addEventListener('click', answerPatientQuery);
+      document.getElementById('resetBtn').addEventListener('click', resetPage);
+      document.getElementById('backBtn2').addEventListener('click', goBack);
+
+      // OCR handler fixed for Tesseract.js v5 CDN
+      document.getElementById('imageInput').addEventListener('change', async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        document.getElementById("status").innerText = "⏳ Processing...";
+        document.getElementById("output").innerText = "";
+
+        const imageUrl = URL.createObjectURL(file);
+
+        const worker = await Tesseract.createWorker('eng');
+        const { data: { text } } = await worker.recognize(imageUrl);
+
+        document.getElementById("output").innerText = text;
+        document.getElementById("status").innerText = "✅ Done!";
+
+        await worker.terminate();
+        URL.revokeObjectURL(imageUrl);
+      });
+    });
+  </script>
+</body>
+</html>
